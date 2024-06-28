@@ -1,0 +1,386 @@
+﻿@model ERP6.ViewModels.Return.ReturnAddViewModel
+
+@{ 
+    Layout = "~/Views/Shared/Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/jquery.keypad.css">
+<style>
+    #inlineKeypad {
+        width: 10em;
+    }
+</style>
+@*<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>*@
+<script src="~/js/jquery.plugin.min.js"></script>
+<script src="~/js/jquery.keypad.js"></script>
+
+<!-- main -->
+<main class="container-wrap f-25vw fw-700">
+    <div class="layout-wrap full-h">
+        <div class="layout-main">
+            <div class="layout-head">
+                <span>
+                    新增退回單
+                </span>
+                <button class="btn-back" onClick="location.href='@Url.Action("Index","Return")'"></button>
+            </div>
+
+            @using (Html.BeginForm("Add", "Return", FormMethod.Post, new { style = "display: block;height:100%;" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                <div class="layout-content">
+                    <div class="order-form-top">
+                        <div class="three">
+                            <div class="filter-input">
+                                <label for="">客戶名稱</label>
+                                <div class="input">
+                                    <div class="select">                                        
+                                        @Html.DropDownListFor(x => x.CoNo, ViewBag.Client as SelectList, "請選擇", htmlAttributes: new { @class = "selectB" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="filter-input">
+                                <label for="">退回單編號</label>
+                                <div class="input">
+                                    @Html.TextBoxFor(x => x.ReturnNo, new { @placeholder = "自動產生", @readonly = "readonly" })
+                                </div>
+                            </div>
+                            <div class="filter-input ">
+                                <label for="">退回日期</label>
+                                <div class="input type-date">
+                                    @Html.TextBoxFor(x => x.ReturnTime, new { @placeholder = "自動產生", @type = "date" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="three">
+                            <div class="filter-input">
+                                <label for="">負責人</label>
+                                <div class="input">
+                                    @Html.TextBoxFor(x => x.UserId, new { @placeholder = "自動產生", @readonly = "readonly" })
+                                </div>
+                            </div>
+                            <div class="filter-input">
+                                <label for="">入庫者</label>
+                                <div class="input">
+                                    @Html.TextBoxFor(x => x.PassedId, new { @readonly = "readonly" })
+                                </div>
+                            </div>
+                            <div class="filter-input">
+                                <label for="">其他備註</label>
+                                <div class="input">
+                                    @Html.TextBoxFor(x => x.Memo)
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layout-bottom">
+                            <button type="button" class="btn-submit submit-moai AddPart">新增品項</button>
+                        </div>
+                    <div class="order-tabs-wrap">
+                        <div class="order-tabs-main">
+                            <div class="order-tabs-content is-active overflow">
+                                <div class="title" style="top:0vw;">
+                                    <div class="f-1">操作</div>
+                                    <div class="f-5 ta-left">品名</div>
+                                    <div class="f-1">價格</div>
+                                    @*<div class="f-1">數量</div>*@
+                                    <div class="f-2">破包退回</div>
+                                    <div class="f-2">過期退回</div>
+                                    <div class="f-2">良品入庫</div>
+                                    <div class="f-2">經銷退回</div>
+                                    <div class="f-5 ta-left">備註</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layout-bottom pb submit-form">
+                        <div class="total-moai totalqty">
+                            <span class="total-title">總數量：</span>
+                            <span class="total-value"></span>
+                        </div>
+                        <div class="total-moai totalamount">
+                            <span class="total-title">金額結算：</span>
+                            <span class="total-value c-r"></span>
+                        </div>
+
+                        <button type="reset" class="btn-clean" onclick="">清除條件</button>
+                        <button type="button" class="btn-submit" onclick="">送出</button>
+                        @*<button type="button" class="btn-submit" data-state="@Model.ORD_STATE">送出</button>*@
+                    </div>
+                </div>
+                <button class="btn-submitfuyu" style="display:none;"></button>
+                }
+        </div>
+    </div>
+</main>
+
+<!--popup -->
+<div class="popup-info-box">
+    <div class="popup-info-content">
+        <figure>
+            <span style="background-image: url('');"></span><!-- 圖片插入到CSS背景路徑裡 -->
+        </figure>
+        <ul>
+            <li>
+                <span>【編號】</span>
+                <p id="Det01"></p>
+            </li>
+            <li>
+                <span>【廠牌】</span>
+                <p id="Det05"></p>
+            </li>
+            <li>
+                <span>【品名】</span>
+                <p id="Det02"></p>
+            </li>
+            <li>
+                <span>【重量】</span>
+                <p id="Det04"></p>
+            </li>
+            <li>
+                <span>【入數】</span>
+                <p id="Det10"></p>
+            </li>
+            <li>
+                <span>【單位】</span>
+                <p id="Det03"></p>
+            </li>
+            <li>
+                <span>【牌價】</span>
+                <p id="Det07"></p>
+            </li>
+            <li>
+                <span>【單價】</span>
+                <p id="Det06"></p>
+            </li>
+            @*<li>
+                    <span>【批發價】</span>
+                    <p id="Det11"></p>
+                </li>
+                <li>
+                    <span>【門市價】</span>
+                    <p id="Det12"></p>
+                </li>
+                <li>
+                    <span>【公教價】</span>
+                    <p id="Det13"></p>
+                </li>
+                <li>
+                    <span>【建議售價一】</span>
+                    <p id="Det14"></p>
+                </li>
+                <li>
+                    <span>【建議售價二】</span>
+                    <p id="Det15"></p>
+                </li>
+                <li>
+                    <span>【建議售價三】</span>
+                    <p id="Det16"></p>
+                </li>
+                <li>
+                    <span>【建議售價四】</span>
+                    <p id="Det17"></p>
+                </li>
+                <li>
+                    <span>【建議售價五】</span>
+                    <p id="Det18"></p>
+                </li>*@
+            <li>
+                <span>【促銷價】</span>
+                <p id="Det08"></p>
+            </li>
+            <li>
+                <span>【Barcode】</span>
+                <p>
+                    <img id="Det09" src="#" alt="" style="width:113px;height:70px;" />
+                </p>
+            </li>
+        </ul>
+    </div>
+    <button class="popup-close"></button>
+</div>
+<div class="popup-check-box">
+    <p>是否確定送出?</p>
+    <div class="btn">
+        <button class="btn-cancel js-popup-cancel" type="button">取消</button>
+        <button class="btn-submit js-popup-confirm" onClick="$('.loading-wrap').show()">確定</button>
+    </div>
+</div>
+<div class="popup-overlay"></div>
+
+
+<!-- 給與退回的版面 -->
+@*<style>
+    .item .f-1{
+        flex:0 0 135px !important;
+    }
+    .item .f-2 {
+        flex: 0 0 270px !important;
+    }
+    .item .f-3{
+        flex:0 0 340px !important;
+    }
+</style>*@
+
+<script>
+    function Total(item) {
+        if (item) {
+            var BA = item.find('input[name="BAmount"]').val() ? parseInt(item.find('input[name="BAmount"]').val()) : 0
+            var EA = item.find('input[name="EAmount"]').val() ? parseInt(item.find('input[name="EAmount"]').val()) : 0
+            var PA = item.find('input[name="PAmount"]').val() ? parseInt(item.find('input[name="PAmount"]').val()) : 0
+            var OA = item.find('input[name="OAmount"]').val() ? parseInt(item.find('input[name="OAmount"]').val()) : 0
+            item.find('input[name="Amount"]').val(BA + EA + PA + OA)
+        }
+        AllTotal();
+    }
+
+    function AllTotal() {
+        var Total = 0;
+        var Amount = 0;
+        $('.item').each(function () {
+            let qty = 0;
+            qty += $(this).find('input[name="BAmount"]').val() ? parseInt($(this).find('input[name="BAmount"]').val()) : 0
+            qty += $(this).find('input[name="EAmount"]').val() ? parseInt($(this).find('input[name="EAmount"]').val()) : 0
+            qty += $(this).find('input[name="PAmount"]').val() ? parseInt($(this).find('input[name="PAmount"]').val()) : 0
+            qty += $(this).find('input[name="OAmount"]').val() ? parseInt($(this).find('input[name="OAmount"]').val()) : 0
+            Total += qty
+            Amount += qty * ($(this).find('input[name="Price"]').val() ? parseFloat($(this).find('input[name="Price"]').val()) : 0)
+                * (100 - ($(this).find('input[name="Discount"]').val() ? parseFloat($(this).find('input[name="Discount"]').val()) : 0)) / 100
+        })
+        $('.totalqty .total-value').text(Total)
+        $('.totalamount .total-value').text("$" + MathRound(Amount))
+    }
+
+    // 四捨五入
+    function MathRound(num) {
+        return Math.round(num * 100) / 100;
+    }
+
+    $(function () {
+        // 小鍵盤輸入
+        $('.defaultKeypad').keypad();
+        // 計算數量
+        $('input[name="BAmount"]').on('change', function () {
+            AllTotal()
+            //Total($(this).parent().parent('.item'))
+        })
+        $('input[name="EAmount"]').on('change', function () {
+            //Total($(this).parent().parent('.item'))
+            AllTotal()
+        })
+        $('input[name="PAmount"]').on('change', function () {
+            //Total($(this).parent().parent('.item'))
+            AllTotal()
+        })
+        $('input[name="OAmount"]').on('change', function () {
+            //Total($(this).parent().parent('.item'))
+            AllTotal()
+        })
+        // 刪除項目
+        $('.span-del').on('click', function () {
+            $(this).parent().parent('.item').remove();
+            AllTotal();
+        })
+        // 新增項目
+        $('.AddPart').on('click', async function () {
+            if (!$('#CoNo').val()) {
+                alert("請先選擇客戶")
+                return false;
+            }
+            var CoNo = $('#CoNo').val()
+            var demo = '<div class="item">' +
+                '<div class="f-1"><span class="span-del">X</span></div>' +
+                '<div class="f-5 ta-left"><input type="text" name="PartNo" value="" class="easyui-combobox combobox-moai"></div>' +
+                '<div class="f-1"><span></span><input type="hidden" class="order-input-num" name="Price" value="" readonly><input type="hidden" class="order-input-num" name="Discount" value="" readonly></div>' +
+                '<div class="f-2"><input type="text" class="order-input-num defaultKeypad" name="BAmount" value="" onfocus="this.select()" placeholder="破包退回數量" readonly></div>' +
+                '<div class="f-2"><input type="text" class="order-input-num defaultKeypad" name="EAmount" value="" onfocus="this.select()" placeholder="過期退回數量"></div>' +
+                '<div class="f-2"><input type="text" class="order-input-num defaultKeypad" name="PAmount" value="" onfocus="this.select()" placeholder="良品入庫數量"></div>' +
+                '<div class="f-2"><input type="text" class="order-input-num defaultKeypad" name="OAmount" value="" onfocus="this.select()" placeholder="經銷退回數量"></div>' +
+                '<div class="f-5 ta-left"><input type="text" class="order-input-note" name="PMemo" placeholder="請輸入備註事項" value="" maxlength="12"></div>' +
+                '</div>';
+            await $('.order-tabs-content.is-active').append(demo);
+
+            let LastItem = $('.order-tabs-content .item:last-child');
+
+            // 新增 - 建盤功能
+            $('.order-tabs-content .item:last-child .defaultKeypad').keypad();
+            // 新增 - 刪除功能
+            LastItem.find('.span-del').on('click', function () {
+                $(this).parent().parent('.item').remove();
+                AllTotal();
+            })
+            // 新增 - 模糊搜尋
+            LastItem.find('input[name="PartNo"]').combobox({
+                url: "@Url.Action("AjaxAllStockForCombobox","Ajaxs")?CoNo=" + CoNo,
+                valueField: 'id',
+                textField: 'text',
+                onSelect: function (data) {
+                    console.log(data)
+                    LastItem.find('input[name="Price"]').val(data.price)
+                    LastItem.find('input[name="Price"]').siblings('span').text(data.price)
+                    LastItem.find('input[name="Discount"]').val(data.discount)
+                    /*Total(LastItem)*/
+                    AllTotal()
+                }
+            })
+            // 新增 - 計算總數量
+            LastItem.find($('input[name="BAmount"]')).on('change', function () {
+                //Total($(this).parent().parent('.item'))
+                AllTotal()
+            })
+            LastItem.find($('input[name="EAmount"]')).on('change', function () {
+                //Total($(this).parent().parent('.item'))
+                AllTotal()
+            })
+            LastItem.find($('input[name="PAmount"]')).on('change', function () {
+                //Total($(this).parent().parent('.item'))
+                AllTotal()
+            })
+            LastItem.find($('input[name="OAmount"]')).on('change', function () {
+                //Total($(this).parent().parent('.item'))
+                AllTotal()
+            })
+        })
+        // 送出
+        $('.submit-form .btn-submit').on('click', function () {
+            let CoNo = $('#CoNo').val()
+            if (!CoNo) {
+                alert("請選擇客戶")
+                return false;
+            }
+            $(".popup-check-box").addClass("is-active");
+            $(".popup-overlay").addClass("is-active");
+        })
+        // 確定送出
+        $(".js-popup-cancel").on("click", function (e) {
+
+            $(".popup-check-box").removeClass("is-active");
+            $(".popup-overlay").removeClass("is-active");
+
+        });
+        // 確定取消
+        $(".js-popup-confirm").on("click", function (e) {
+
+            $(".btn-submitfuyu").click();
+
+        });
+         // 清除
+        $('.btn-clean').on('click', function () {
+            $('.item').remove();
+            $('#CoNo').val('')
+            $('#Memo').val('')
+            $('#ReturnTime').val(new Date().getFullYear() + "-" + (new Date().getMonth + 1) + "-" + new Date().getDate())
+        })
+
+        // 更換客戶、更換價格
+        $('#CoNo').on('change', function () {
+            let CoNo = $(this).val();
+            $('.easyui-combobox').each(function () {
+                $(this).combobox('reload',"@Url.Action("AjaxAllStockForCombobox","Ajaxs")?CoNo=" + CoNo)
+            })
+        })
+
+    })
+</script>

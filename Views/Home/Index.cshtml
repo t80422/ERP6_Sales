@@ -1,0 +1,244 @@
+﻿@model ERP6.ViewModels.Home.HomeIndexViewModel
+
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/Layout.cshtml";
+}
+
+@using Microsoft.AspNetCore.Http;
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var permission = (HttpContextAccessor.HttpContext.Session.GetString("Permission")).Split('_');//0:最低權限
+}
+
+@Html.HiddenFor(x => x.NewPwd)
+@Html.HiddenFor(x => x.UserAC)
+
+<main class="container-wrap">
+    <div class="menu-wrap">
+        @if (Convert.ToInt32(permission[0]) == 0)
+        {
+            <ul>
+                <li class="is-order">
+                    <a href="@Url.Action("Area", "Sales") ">
+                        <span></span>
+                        <h2>訂單作業</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+            </ul>
+        }
+        else if (Convert.ToInt32(permission[0]) <= 5)
+        {
+            <ul>
+                <li class="is-return">
+                    <a href="@Url.Action("Index", "Return") ">
+                        <span></span>
+                        <h2>出貨退回單</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-order">
+                    <a href="@Url.Action("Area", "Sales") ">
+                        <span></span>
+                        <h2>訂單作業</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+            </ul>
+        }
+        else if (Convert.ToInt32(permission[0]) > 5 && Convert.ToInt32(permission[0]) <= 10)
+        {
+            <ul>
+                <li class="is-return">
+                    <a href="@Url.Action("Index", "Return") ">
+                        <span></span>
+                        <h2>出貨退回單</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-order">
+                    <a href="@Url.Action("Index","Out") ">
+                        <span></span>
+                        <h2>理貨作業</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+            </ul>
+        }
+        else if (Convert.ToInt32(permission[0]) > 10 && Convert.ToInt32(permission[0]) <= 15)
+        {
+            <ul>
+                <li class="is-return">
+                    <a href="@Url.Action("Index","Return") ">
+                        <span></span>
+                        <h2>出貨退回單</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-order">
+                    <a href="@Url.Action("Area","Sales") ">
+                        <span></span>
+                        <h2>訂單作業</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-order">
+                    <a href="@Url.Action("Index","Out") ">
+                        <span></span>
+                        <h2>理貨作業</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+            </ul>
+        }
+        else if (Convert.ToInt32(permission[0]) == 99)
+        {
+            <ul>
+                <li class="is-return">
+                    <a href="@Url.Action("Index","Return") ">
+                        <span></span>
+                        <h2>出貨退回單</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-order">
+                    <a href="@Url.Action("Index","Out") ">
+                        <span></span>
+                        <h2>理貨作業</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-order">
+                    <a href="@Url.Action("Area","Sales") ">
+                        <span></span>
+                        <h2>訂單作業</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-shipment">
+                    <a href="@Url.Action("Index","Vendor")">
+                        <span></span>
+                        <h2>廠商基本資料</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-quotation">
+                    <a href="###">
+                        <span></span>
+                        <h2>報價單記錄</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-promotion">
+                    <a href="###">
+                        <span></span>
+                        <h2>促銷單記錄</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-inventory">
+                    <a href="###">
+                        <span></span>
+                        <h2>盤點單記錄</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+                <li class="is-collection">
+                    <a href="###">
+                        <span></span>
+                        <h2>應收帳款記錄</h2>
+                        <div class="menu-more"><b></b></div>
+                    </a>
+                </li>
+            </ul>
+        }
+    </div>
+</main>
+
+<!-- 確認視窗 -->
+<div class="popup-check-box check">
+    <div class="one">
+        <div class="filter-input">
+            <label style="text-align:left" for="">新密碼*</label>
+            <div class="input">
+                @Html.TextBoxFor(x => x.Pwd, new { type = "password" })
+            </div>
+        </div>
+    </div>
+    <div class="one">
+        <div class="filter-input">
+            <label style="text-align:left" for="">確認密碼*</label>
+            <div class="input">
+                @Html.TextBoxFor(x => x.CheckPwd, new { type = "password" })
+            </div>
+        </div>
+    </div>
+    <div class="btn">
+        <button class="btn-submit small check">確定</button>
+    </div>
+</div>
+
+<!-- overlay -->
+<div class="popup-overlay"></div>
+
+<script>
+    $(function () {
+        if ($("#NewPwd").val() == '') {
+            $(".popup-check-box.check").addClass("is-active");
+            $(".popup-overlay").addClass("is-active");
+
+            //確定
+            $('.btn-submit.small.check').on('click', function () {
+
+                let pwd = $("#Pwd").val();
+                let checkPwd = $("#CheckPwd").val();
+                let userId = $("#UserAC").val();
+
+                //密碼基本檢查
+                if (pwd == '') {
+                    alert("請設定密碼!");
+
+                    return;
+                }
+
+                // 8 字英數組成
+                // 至少包含 1 個大寫英文 與 小寫英文
+                // 包含 1 個數字
+                let regex = new RegExp(/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/)
+
+                if (pwd.match(regex) == null) {
+                    alert("密碼設定錯誤!請設定為8位數以上，至少包含 1 個大寫英文 與 小寫英文，並至少包含 1 個數字");
+
+                    return;
+                }
+
+                if (pwd != checkPwd) {
+                    alert("請確認密碼是否一致!")
+
+                    return;
+                }
+
+                $(".popup-check-box.check").removeClass("is-active");
+                $(".popup-overlay").removeClass("is-active");
+
+                $.ajax({
+                    url: "@Url.Action("AjaxChangePassword", "Ajaxs")",
+                    type: "POST",
+                    data: { userId: userId, pwd: pwd },
+                    success: function (data) {
+                        if (data) {
+                            alert("更新成功!請使用新密碼重新登入");
+
+                            window.location.href = "@Url.Action("Index", "Login")";
+                        }
+                        else {
+                            alert("系統錯誤!");
+                        }
+                    }
+                });
+            });
+        }
+    });
+</script>

@@ -1,0 +1,150 @@
+﻿@*@using Microsoft.AspNetCore.Http;
+    @inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor;*@
+
+@using Microsoft.AspNetCore.Http;
+@inject IHttpContextAccessor HttpContextAccessor
+
+
+
+@{
+    string UserAc = HttpContextAccessor.HttpContext.Session.GetString("UserAc");
+    string UserName = HttpContextAccessor.HttpContext.Session.GetString("UserName");
+
+    var vm = new ERP6.ViewModels.Home.HomeIndexViewModel { UserAC = UserAc } ;
+    //vm.UserAC = UserAc;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>弘隆食品有限公司</title>
+    <link href="~/image/favico.ico" rel="shortcut icon">
+    <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/style2.css">
+    <link href="~/css/easyui.css" rel="stylesheet" />
+    <script src="~/js/jquery-2.1.4.min.js"></script>
+    <script src="~/js/jquery.easyui.min.js"></script>
+
+
+
+    @if (@HttpContextAccessor.HttpContext.Session.GetString("msg") != null && @HttpContextAccessor.HttpContext.Session.GetString("msg") != "")
+    {
+<script>
+
+
+            alert('@HttpContextAccessor.HttpContext.Session.GetString("msg")');
+
+            $(function () {
+                var fuyu = "";
+                    $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("msgClear", "Login")",
+                    data: { id: fuyu },
+                    success: function (data) {
+                        if (data != null) {
+
+                        }
+                    },
+                    error: function () {
+                        alert("發生錯誤!");
+                    }
+                });
+            });
+</script>
+}
+
+</head>
+<body>
+
+    <article id="wrap">
+        <!-- header -->
+        <header class="header-wrap">
+            <figure class="logo-wrap"><a href="@Url.Action("Index","Home" , vm)"></a></figure>
+            @if (ViewBag.FUN == "Index")
+            {
+            }
+            else
+            {
+                <nav class="nav-wrap">
+                    <div class="nav-item n-order is-active"><a href="@Url.Action("Area","Sales")"></a></div>
+                    <div class="nav-item n-shipment"><a href="###"></a></div>
+                    <div class="nav-item n-quotation"><a href="###"></a></div>
+                    <div class="nav-item n-promotion"><a href="###"></a></div>
+                    <div class="nav-item n-inventory"><a href="###"></a></div>
+                    <div class="nav-item n-collection"><a href="###"></a></div>
+                </nav>
+            }
+            <div class="user-info">
+                <span>帳號名稱</span>
+                <h2>@UserAc @UserName</h2>
+            </div>
+            <button class="signout-btn" onClick="window.location.href='@Url.Action("Out","Login")'"></button>
+        </header>
+        <!-- main -->
+        @RenderBody()
+        <div class="loading-wrap">
+            <span class="loader"></span>
+        </div>
+    </article>
+
+    <!-- 通用 -->
+    <script>
+        window.onbeforeunload = function () {
+            $('.loading-wrap').show();
+        }
+        window.onpageshow = function (event) {
+            if (event.persisted) {
+                window.location.reload()
+            }            
+        }
+        window.onpagehide = function () {
+            $('.loading-wrap').show();
+        }
+        // 顯示讀取條
+        $(function () {
+            // 登出
+            $('.signout-btn').on('click', function () {
+                $('.loading-wrap').show();
+            })
+            // 首頁菜單
+            $('.menu-wrap ul li > a').on('click', function () {
+                $('.loading-wrap').show();
+            })
+            // 送出表單
+            $('form').on('submit', function () {
+                $('.loading-wrap').show();
+            })
+            // 合併、入庫
+            $('.js-popup-confirm').on('click', function () {
+                $('.loading-wrap').show();
+            })
+            // 新增
+            $('.btn-addorder').on('click', function () {
+                $('.loading-wrap').show();
+            })
+            // 編輯
+            $('.btn-edit').on('click', function () {
+                $('.loading-wrap').show();
+            })
+            // 查看
+            $('.btn-view').on('click', function () {
+                $('.loading-wrap').show();
+            })
+            // 頁碼
+            $('.layout-pages a').on('click', function () {
+                $('.loading-wrap').show();
+            })
+            
+        })
+    </script>
+</body>
+</html>
+
+
+
+
+
+

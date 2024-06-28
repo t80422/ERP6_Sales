@@ -1,0 +1,256 @@
+﻿@model ERP6.ViewModels.Sales.OrderAddViewModel
+
+@using Microsoft.AspNetCore.Http;
+@inject IHttpContextAccessor HttpContextAccessor
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    var permission = HttpContextAccessor.HttpContext.Session.GetString("Permission");
+}
+
+
+<link rel="stylesheet" href="~/css/jquery.keypad.css">
+<style>
+    #inlineKeypad {
+        width: 10em;
+    }
+</style>
+@*<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>*@
+<script src="~/js/jquery.plugin.min.js"></script>
+<script src="~/js/jquery.keypad.js"></script>
+
+<!-- main -->
+<main class="container-wrap">
+    <div class="layout-wrap full-h">
+        <div class="layout-main">
+            <div class="layout-head">
+                <span>
+                    新增訂單
+                </span>
+                <button class="btn-back" onClick="window.location.href='@Url.Action("Order","Sales",new { Area = Model.Area, CustomerId = Model.CoNo })'"></button>
+            </div>
+
+            @using (Html.BeginForm("OrderEdit", "Sales", FormMethod.Post, new { style = "display: block;height:100%;" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(x => x.OutNo)
+                @Html.HiddenFor(x => x.Area)
+                @Html.HiddenFor(x => x.OutDate)
+                @Html.HiddenFor(x => x.PayMonth)
+                @Html.HiddenFor(x => x.KeyInDate)
+                @Html.HiddenFor(x => x.Ntus)
+                @Html.HiddenFor(x => x.Userid)
+                @Html.HiddenFor(x => x.PeNo)
+                @Html.HiddenFor(x => x.DriveNo)
+                @Html.HiddenFor(x => x.Discount)
+                @Html.HiddenFor(x => x.TallyState)
+                <div class="layout-content">
+                    <div class="order-form-top">
+                        <div class="three">
+                            <div class="filter-input">
+                                <label for="">送貨次序</label>
+                                <div class="input">
+                                    @*<input type="text" name="ORD_ORDER" readonly>*@
+                                </div>
+                            </div>
+                            <div class="filter-input ">
+                                <label for="">客戶簡稱</label>
+                                <div class="input">
+                                    <div class="select">
+                                        @Html.DropDownListFor(x => x.CoNo, ViewBag.Client as SelectList, "全部", htmlAttributes: new { @class = "selectB" })
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="filter-input ">
+                                <label for="">請款日期</label>
+                                <div class="input type-date">
+                                    <input type="date" name="ORD_PTIME" readonly value="">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="one">
+                            <div class="filter-input">
+                                <label for="">其他備註</label>
+                                <div class="input">
+                                    @Html.TextBoxFor(x => x.Memo)
+                                    @*<input type="text" name="ORD_PS" value="@Model.ORD_PS">*@
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-tabs-wrap">
+                        <div class="order-tabs-nav">
+                            <ul>
+                                @foreach (var item in Model.StockTypeList)
+                                {
+                                    <li class="order-tabs-item">@item</li>
+}
+                            </ul>
+                        </div>
+                        <div class="order-tabs-main">
+                            @foreach (var titleItem in Model.StockTypeList)
+                            {
+                                <div class="order-tabs-content">
+                                    <div class="title">
+                                        <div class="f-1">促銷</div>
+                                        <div class="f-1">狀態</div>
+                                        <div class="f-5 ta-left">品名</div>
+                                        <div class="f-2">價格</div>
+                                        <div class="f-2">數量</div>
+                                        <div class="f-2">庫存</div>
+                                        <div class="f-4 ta-left">備註</div>
+                                    </div>
+                                    @{ var fus = 1;
+
+                                        foreach (var item in Model.StockList.Where(x => x.Type == titleItem))
+                                        {
+                                            <div class="item">
+                                                <div class="f-1">
+                                                    <div class="order-input-promot">
+                                                        <input type="checkbox" id="ck1_@fus" name="SALE" value="@item.PartNo" @if (item.IsSales) { @Html.Raw("checked") ; }>
+                                                    </div>
+                                                </div>
+                                                <div class="f-1">
+                                                    <div class="order-input-stat">
+                                                        <input type="checkbox" id="star1_@fus" name="BOUGHT" disabled value="@item.PartNo" @if (item.IsStats) { @Html.Raw("checked") ; }>
+                                                        <label for="star1_1"></label>
+                                                    </div>
+                                                    @*@{
+                                                            if (item.IsSalesStatus == true)
+                                                            {
+                                                                <div class="order-input-stat">
+                                                                    <input type="checkbox" id="star1_@fus" name="BOUGHT" disabled value="@item.PartNo" @if (item.IsSalesStatus == true) { @Html.Raw("checked") ; }>
+                                                                    <label for="star1_1"></label>
+                                                                </div>
+                                                            }
+                                                        }*@
+                                                </div>
+                                                <div class="f-5 ta-left">
+                                                    <p class="order-item-name" data-fuyu-no="@item.PartNo">@item.Spec </p>
+                                                    <input type="hidden" name="SPEC" value="@item.Spec">
+                                                    <input type="hidden" name="PART_NO" value="@item.PartNo" id="partno_@item.PartNo">
+                                                </div>
+                                                <div class="f-2">
+                                                    @permission
+                                                    <input type="text" class="order-input-num defaultKeypad" name="PORDPRICE" value="@item.Price" onfocus="this.select()" @if (permission.Contains("N")) { @Html.Raw("disabled") ; }>
+                                                </div>
+                                                <div class="f-2">
+                                                    <input type="text" class="order-input-num defaultKeypad" name="PORDNUM" value="@item.Qty" onfocus="this.select()">
+                                                </div>
+                                                <div class="f-2">
+                                                    <span class="toolongtext">@item.IQty</span>
+                                                </div>
+                                                <div class="f-4 ta-left">
+                                                    <input type="text" class="order-input-note" name="PS" placeholder="請輸入備註事項" value="@item.Memo" maxlength="12">
+                                                </div>
+                                            </div> fus++;
+                                        } }
+                                </div>}
+                        </div>
+                    </div>
+                    <div class="layout-bottom pb">
+                        <button type="button" class="btn-clean" onclick="">清除條件</button>
+                        <button type="button" class="btn-submit" onclick="">送出</button>
+                        @*<button type="button" class="btn-submit" data-state="@Model.ORD_STATE">送出</button>*@
+                    </div>
+                </div>
+                <button class="btn-submitfuyu"></button>}
+        </div>
+    </div>
+</main>
+
+<!--popup -->
+<div class="popup-info-box">
+    <div class="popup-info-content">
+        <figure>
+            <span style="background-image: url('');"></span><!-- 圖片插入到CSS背景路徑裡 -->
+        </figure>
+        <ul>
+            <li>
+                <span>【編號】</span>
+                <p id="Det01"></p>
+            </li>
+            <li>
+                <span>【廠牌】</span>
+                <p id="Det05"></p>
+            </li>
+            <li>
+                <span>【品名】</span>
+                <p id="Det02"></p>
+            </li>
+            <li>
+                <span>【重量】</span>
+                <p id="Det04"></p>
+            </li>
+            <li>
+                <span>【入數】</span>
+                <p id="Det10"></p>
+            </li>
+            <li>
+                <span>【單位】</span>
+                <p id="Det03"></p>
+            </li>
+            <li>
+                <span>【牌價】</span>
+                <p id="Det07"></p>
+            </li>
+            <li>
+                <span>【單價】</span>
+                <p id="Det06"></p>
+            </li>
+            @*<li>
+                    <span>【批發價】</span>
+                    <p id="Det11"></p>
+                </li>
+                <li>
+                    <span>【門市價】</span>
+                    <p id="Det12"></p>
+                </li>
+                <li>
+                    <span>【公教價】</span>
+                    <p id="Det13"></p>
+                </li>
+                <li>
+                    <span>【建議售價一】</span>
+                    <p id="Det14"></p>
+                </li>
+                <li>
+                    <span>【建議售價二】</span>
+                    <p id="Det15"></p>
+                </li>
+                <li>
+                    <span>【建議售價三】</span>
+                    <p id="Det16"></p>
+                </li>
+                <li>
+                    <span>【建議售價四】</span>
+                    <p id="Det17"></p>
+                </li>
+                <li>
+                    <span>【建議售價五】</span>
+                    <p id="Det18"></p>
+                </li>*@
+            <li>
+                <span>【促銷價】</span>
+                <p id="Det08"></p>
+            </li>
+            <li>
+                <span>【Barcode】</span>
+                <p>
+                    <img id="Det09" src="#" alt="" style="width:113px;height:70px;" />
+                </p>
+            </li>
+        </ul>
+    </div>
+    <button class="popup-close"></button>
+</div>
+<div class="popup-check-box">
+    <p>是否確定送出?</p>
+    <div class="btn">
+        <button class="btn-cancel js-popup-cancel" type="button">取消</button>
+        <button class="btn-submit js-popup-confirm" onClick="">確定</button>
+    </div>
+</div>
+<div class="popup-overlay"></div>

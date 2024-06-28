@@ -1,0 +1,313 @@
+﻿@model ERP6.ViewModels.Return.ReturnViewModel
+@using X.PagedList;
+@using X.PagedList.Mvc.Core;
+
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+@{
+    X.PagedList.Web.Common.PagedListRenderOptions PageMode = new X.PagedList.Web.Common.PagedListRenderOptions()
+    {
+        ContainerDivClasses = new List<string> { "layout-pages" },
+        Display = X.PagedList.Web.Common.PagedListDisplayMode.IfNeeded,
+        DisplayLinkToPreviousPage = X.PagedList.Web.Common.PagedListDisplayMode.IfNeeded,
+        DisplayLinkToNextPage = X.PagedList.Web.Common.PagedListDisplayMode.IfNeeded,
+        DisplayLinkToLastPage = X.PagedList.Web.Common.PagedListDisplayMode.Never
+    };
+
+    Layout = "~/Views/Shared/Layout.cshtml";
+}
+
+<!-- main -->
+<main class="container-wrap f-25vw fw-700">
+    <div class="layout-wrap full-h">
+        <div class="layout-main">
+            <!-- TITLE -->
+            <div class="layout-head">
+                <span>出貨退回單</span>
+                <button class="btn-addorder" onclick="addReturn()">新增退回單</button>
+            </div>
+            <!-- SEARCH FORM -->
+            <div class="layout-content">
+                @* form here *@
+                @using (Html.BeginForm("Index", "Return", FormMethod.Post, new { style = "display: block;height:100%;", id = "myForm", onsubmit = "$('#IsSearch').val(true);" }))
+                {
+                    @Html.HiddenFor(x => x.IsSearch)
+                    <div class="order-form-top">
+                        <div class="four">
+                            <!-- 理貨數量 -->
+                            <div class="filter-input">
+                                <div class="text">
+                                    <span>已入庫：</span>
+                                    <span>@Model.Passed</span>
+                                </div>
+                                <div class="text">
+                                    <span>未入庫：</span>
+                                    <span>@Model.NotPassed</span>
+                                </div>
+                            </div>
+                            <!-- 訂單狀態 -->
+                            <div class="filter-input">
+                                <label for="OrderStatus">退回單狀態</label>
+                                <div class="select">
+                                    @Html.DropDownListFor(x => x.ReturnState, ViewBag.StatesList as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                                </div>
+                            </div>
+                            <!-- 訂單編號 -->
+                            <div class="filter-input">
+                                <label for="Forder">退回單編號</label>
+                                <div class="input">
+                                    @Html.TextBoxFor(x => x.ReturnNo, new { placeholder = "請輸入14碼訂單編號", type = "number", maxlength = "14" })
+                                    @* @Html.TextBoxFor() *@
+                                    @*<input type="number" name="Forder" id="Forder" placeholder="請輸入14碼訂單編號" maxlength="14" value="">*@
+                                </div>
+                            </div>
+                            <!-- 訂購時間 -->
+                            <div class="filter-input">
+                                <label for="Fdate">建立時間</label>
+                                <div class="input type-date">
+                                    @Html.TextBoxFor(x => x.ReturnTime, new { type = "date" })
+                                    @*@Html.TextBoxFor(x => x.OrderTime, new { type = "month" })*@
+                                    @*<input type="month" name="Fdate" id="Fdate" value="">*@
+                                </div>
+                            </div>
+                        </div>
+                        <div class="four-half">
+                            <!-- 司機 -->
+                            <div class="filter-input">
+                                <label for="DriverNo">司機</label>
+                                <div class="select">
+                                    @Html.DropDownListFor(x => x.DriverNo, ViewBag.DriverList as SelectList, "請選擇", htmlAttributes: new { @class = "form-control" })
+                                    @* @Html.DropDownListFor() *@
+                                    @*<select id="Driver">
+                                <option value="A001">A001 張XX</option>
+                                <option value="A002">A002 劉XX</option>
+                                <option value="A003">A003 陳XX</option>
+                            </select>*@
+                                </div>
+                            </div>
+                            <!-- 業務 -->
+                            <div class="filter-input">
+                                <label for="PerNo">業務</label>
+                                <div class="select">
+                                    @Html.DropDownListFor(x => x.PerNo, ViewBag.PerNoList as SelectList, "請選擇", htmlAttributes: new { @class = "form-control" })
+                                    @* @Html.DropDownListFor() *@
+                                    @*<select id="Driver">
+                                <option value="A001">A001 張XX</option>
+                                <option value="A002">A002 劉XX</option>
+                                <option value="A003">A003 陳XX</option>
+                            </select>*@
+                                </div>
+                            </div>
+                            <!-- 區域 -->
+                            <div class="filter-input">
+                                <label for="Area">區域</label>
+                                <div class="select">
+                                    @Html.DropDownListFor(x => x.AreaNo, ViewBag.Area as SelectList, "請選擇", htmlAttributes: new { @class = "selectA" })
+                                    @* Html.DropDownListFor() *@
+                                    @*<select id="Area">
+                                <option value="A">A區</option>
+                                <option value="B">B區</option>
+                                <option value="C">C區</option>
+                            </select>*@
+                                </div>
+                            </div>
+
+                            <!-- 客戶名稱 -->
+                            <div class="filter-input">
+                                <label for="CustomId">客戶名稱</label>
+                                <div class="select">
+                                    @Html.DropDownListFor(x => x.CoNo, ViewBag.Client as SelectList, "請選擇", htmlAttributes: new { @class = "selectB" })
+                                    @* Html.DropDownListFor()  *@
+                                    @*<select id="CustomId">
+                                <option value="A">A客戶</option>
+                                <option value="B">B客戶</option>
+                                <option value="C">C客戶</option>
+                            </select>*@
+                                </div>
+                            </div>
+                            <!-- 搜尋按鈕 -->
+                            <div class="filter-input search">
+                                <button class="btn-search search-moai" type="submit"></button>
+                            </div>
+                        </div>
+                        <!-- 送出 -->
+                        <div class="layout-bottom full">
+                            <!-- 搜尋按鈕 -->
+                            @*<button type="submit" class="btn-submit search-moai">搜尋</button>*@
+                            <button type="button" class="btn-submit submit-moai" @if (Model.ReturnState == "1" || Model.AllPassed == true) { @Html.Raw("disabled") }>入庫</button>
+                        </div>
+                    </div>
+
+                    <!-- 資料 -->
+                    <div class="order-flex-wrap">
+                        <div class="title">
+                            <div class="f-1">
+                                <div class="order-input-promot all-check" style="margin-right:1vw;">
+                                    <input type="checkbox" value="" @if (Model.ReturnState == "1" || Model.AllPassed == true) { @Html.Raw("disabled checked") } />
+                                </div>
+                                <span class="f-2vw">全選</span>
+                            </div>
+                            <div class="f-1">狀態</div>
+                            <div class="f-2">退回單編號</div>
+                            <div class="f-2">客戶名稱</div>
+                            <div class="f-2">退回單時間</div>
+                            <div class="f-2 ta-right pd-r-5vw">退回單金額</div>
+                            <div class="f-1">操作</div>
+                        </div>
+
+                        @if (Model.ReturnList != null && Model.ReturnList.Count() > 0)
+                        {
+                            foreach (var item in Model.ReturnList)
+                            {
+                                <div class="item">
+                                    <div class="f-1">
+                                        <div class="order-input-promot for-submit">
+                                            <input type="checkbox" value="@item.ReturnNo" data-state="@item.ReturnState" @if (item.ReturnState) { @Html.Raw("disabled checked") } />
+                                        </div>
+                                    </div>
+                                    <div class="f-1">
+                                        @if (item.ReturnState)
+                                        {
+                                            @Html.Raw("已入庫")
+                                        }
+                                        else
+                                        {
+                                            @Html.Raw("未入庫")
+                                        }
+                                    </div>
+                                    <div class="f-2">@item.ReturnNo</div>
+                                    <div class="f-2">@item.CoName</div>
+                                    <div class="f-2">@item.ReturnTime</div>
+                                    <div class="f-2 ta-right pd-r-5vw">$ @item.Amount </div>
+                                    <div class="f-1">
+                                        @if (item.ReturnState)
+                                        {
+                                            <button type="button" class="btn-view" onclick="location.href = '@Url.Action("Edit","Return",new { ReturnNo=item.ReturnNo})'"></button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn-edit" onclick="location.href = '@Url.Action("Edit","Return",new { ReturnNo=item.ReturnNo})'"></button>
+                                        }
+                                        @*<button class="btn-edit" onclick="goEdit('@item.OrderNo')"></button>*@
+                                        @*<button class="btn-edit" onclick="location.href='@Url.Action("Edit","Out",new { OutNo = item.OrderNo , Area = item.Area , CustomerId = item.CustomerId })'"></button>*@
+                                    </div>
+                                </div>
+                            }
+                        }
+
+                        @*<div class="item">
+                    <div class="f-1">
+                        <div class="order-input-promot for-submit">
+                            <input type="checkbox" value="" />
+                        </div>
+                    </div>
+                    <div class="f-1">未出貨</div>
+                    <div class="f-2">2023030037</div>
+                    <div class="f-2">2023-03-14</div>
+                    <div class="f-1">$9300</div>
+                    <div class="f-1">
+                        <button class="btn-edit"></button>
+                    </div>
+                </div>*@
+                    </div>
+                    <!-- 頁碼 -->
+                    @Html.PagedListPager((IPagedList)Model.ReturnList, 
+                        page => Url.Action("Index", new { 
+                            page, Model.AreaNo, Model.CoNo, Model.DriverNo, Model.IsSearch, Model.PerNo, Model.ReturnNo, Model.ReturnTime, Model.ReturnState
+                        }), PageMode)
+
+                }
+
+            </div>
+        </div>
+    </div>
+</main>
+<!-- 通知訊息視窗 -->
+@using (Html.BeginForm("Submit", "Return", FormMethod.Post, new { style = "display: block;" }))
+{
+    <div class="popup-check-box">
+        <p>是否確定送出?</p>
+        <div class="btn">
+            <input type="hidden" value="" id="submitOrder" name="submitOrder" />
+            <button type="button" class="btn-cancel js-popup-cancel">取消</button>
+            <button type="submit" class="btn-submit js-popup-confirm">確定</button>
+        </div>
+    </div>
+    <div class="popup-overlay"></div>
+}
+
+
+<!-- JS -->
+<script>
+    // 依照區域替換客戶
+    $(".selectA").change(function (e) {// 下拉搜尋
+
+        $('.selectB').empty();
+        var sV = $('#AreaNo').val();
+        $('.selectB').append(`<option value=""> 請選擇 </option>`);
+
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("AjaxClientName", "Ajaxs")",
+            data: { id: sV },
+            success: function (data) {
+                if (data != null) {
+                    $.each(data, function (i, fu) {
+                        var str = '<option value="' + fu.coNo + '">' + fu.coname + '</div>';
+                        $(".selectB").append(str)
+                    })
+                }
+            },
+            error: function () {
+                alert("發生錯誤!");
+            }
+        });
+    });
+
+    // 全選功能
+    $('.all-check input[type="checkbox"]').on('click', function () {
+        if ($(this).prop('checked')) {
+            $('.for-submit input[type="checkbox"]:not([disabled])').each(function (index) {
+                if ($(this).data('state') == "False") $(this).prop('checked', true)
+            })
+        } else {
+            $('.for-submit input[type="checkbox"]:not([disabled])').prop('checked', false)
+        }
+    })
+
+    // 合併
+    $('button.submit-moai').click(() => {
+
+        var myArray = [];
+        $('.for-submit input[type="checkbox"]:checked:not([disabled])').each(function (index) {
+            myArray.push($(this).val())
+        })
+
+        if (myArray.length <= 0) {
+            alert('請勾選訂單')
+            return false;
+        }
+
+        $('#submitOrder').val(myArray)
+
+        $('.popup-check-box').addClass('is-active');
+        $('.popup-overlay').addClass('is-active');
+    })
+
+    // 彈出視窗取消
+    $('button.js-popup-cancel').click(() => {
+        $('.popup-check-box').removeClass('is-active');
+        $('.popup-overlay').removeClass('is-active');
+
+        $('#submitOrder').val("");
+    })
+
+    // 新增畫面導入
+    function addReturn(){
+        let cono = $('#CoNo').val() ?? "";
+        location.href = '@Url.Action("Add","Return")' + '?CoNo=' + cono;
+    }
+
+</script>

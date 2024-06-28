@@ -1,0 +1,331 @@
+﻿@model ERP6.ViewModels.Sales.OrderViewModel
+
+@using X.PagedList.Mvc.Core;
+@using X.PagedList;
+@using Microsoft.AspNetCore.Http;
+
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{ 
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/Layout.cshtml";
+    var permissions = (HttpContextAccessor.HttpContext.Session.GetString("Permission")).Split('_'); //0:最低權限
+}
+
+<!-- main -->
+<main class="container-wrap">
+    <div class="layout-wrap full-h">
+        <div class="layout-main">
+            <div class="layout-head">
+                <span>訂單查詢 </span>
+                <button class="btn-addorder">新增訂單</button>
+            </div>
+            <div class="layout-content">
+                @using (Html.BeginForm("Order", "Sales", FormMethod.Post, new { style = "display: block;height:100%;", id = "myFrom" }))
+                {
+                    @Html.HiddenFor(x => x.IsSearch)
+
+                    <div class="order-form-top">
+                        <div class="two">
+                            <div class="filter-input">
+                                <div class="text">
+                                    <span>已出貨：</span>
+                                    <span>@Model.Shipped</span>
+                                </div>
+
+                                <div class="text">
+                                    <span>未出貨：</span>
+                                    <span>@Model.NotShipped</span>
+                                </div>
+                            </div>
+
+                            <div class="filter-input">
+                                <label for="OrderStatus">訂單狀態</label>
+                                <div class="select">
+                                    @Html.DropDownListFor(x => x.OrderState, ViewBag.StateSList as IEnumerable<SelectListItem>, new { @class = "form-control" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="two">
+                            <div class="filter-input">
+                                <label for="">訂單編號</label>
+                                <div class="input">
+                                    @Html.TextBoxFor(x => x.OrderNo, new { placeholder = "請輸入14碼訂單編號", type = "number", maxlength = "14" })
+                                </div>
+                            </div>
+
+                            <div class="filter-input">
+                                <label for="">訂購時間</label>
+                                <div class="input type-date">
+                                    @Html.TextBoxFor(x => x.OrderTime, new { type = "date" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="two">
+                            <div class="filter-input">
+                                <label for="">區域</label>
+                                <div class="select selectA">
+                                    @Html.DropDownListFor(x => x.Area, ViewBag.Area as SelectList, "請選擇", htmlAttributes: new { @class = "form-control" })
+                                </div>
+                            </div>
+
+                            <div class="filter-input">
+                                <label for="">客戶名稱</label>
+                                <div class="select">
+                                    @Html.DropDownListFor(x => x.CustomerId, ViewBag.Client as SelectList, "全部", htmlAttributes: new { @class = "selectB" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="layout-bottom full">
+                            <button class="btn-submit submit-moai">搜尋</button>
+                        </div>
+                    </div>
+
+                    <div class="order-flex-wrap">
+                        <div class="title">
+                            <div class="f-0">狀態</div>
+                            <div class="f-2">訂單編號</div>
+                            <div class="f-3">客戶名稱</div>
+                            <div class="f-3">訂單時間</div>
+                            @if (Convert.ToInt32(permissions[0]) != 0)
+                            {
+                                <div class="f-2">訂單金額</div>
+                            }
+                            <div class="f-2">操作</div>
+                        </div>
+
+                        @foreach (var it in Model.orderList)
+                        {
+                            <div class="item">
+                                <div class="f-0">
+                                    @if (it.OrderState == "1")
+                                    {
+                                        @Html.Raw("已出貨")
+                                    }
+                                    else
+                                    { 
+                                        @Html.Raw("未出貨")
+                                    }
+                                </div>
+                                <div class="f-2">@it.OrderNo</div>
+                                <div class="f-3">@it.CoName</div>
+                                <div class="f-3">@it.OrderTime </div>
+                                @if (Convert.ToInt32(permissions[0]) != 0)
+                                {
+                                    <div class="f-2 ta-right">$ @it.OrderAmount</div>
+                                }
+                                <div class="f-2">
+                                    <button class="btn-edit" type="button" data-fuyu-state="@it.OrderState" data-customerId="@it.CustomerId" data-fuyu-code="@it.OrderNo"></button>
+                                    <button class="btn-del" type="button" data-fuyu-state="@it.OrderState" data-fuyu-code="@it.OrderNo"></button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @Html.PagedListPager(
+                    (IPagedList)Model.orderList
+                    , page => Url.Action("Order", new { page, Model.CustomerId, Model.Area, Model.OrderState, IsSearch = true, Model.OrderTime, Model.OrderNo })
+                    , new X.PagedList.Web.Common.PagedListRenderOptions()
+                    {
+                        ContainerDivClasses = new List<string> { "layout-pages" },
+                        Display = X.PagedList.Web.Common.PagedListDisplayMode.IfNeeded,
+                        DisplayLinkToPreviousPage = X.PagedList.Web.Common.PagedListDisplayMode.IfNeeded,
+                        DisplayLinkToNextPage = X.PagedList.Web.Common.PagedListDisplayMode.IfNeeded,
+                    }
+                )
+            </div>
+        </div>
+    </div>
+</main>
+
+<!--popup -->
+<div class="popup-check-box">
+    <p>是否確定刪除訂單?</p>
+    <div class="btn">
+        <input type="hidden" id="deldel" value="">
+        <button class="btn-cancel js-popup-cancel">取消</button>
+        <button class="btn-submit js-popup-confirm">確定</button>
+    </div>
+</div>
+<div class="popup-overlay"></div>
+
+<!-- JS -->
+<script>
+    // 搜尋
+    $('#myFrom').submit(function () {
+        $('#IsSearch').val(true)
+    })
+    // 新增
+    $(".btn-addorder").on("click", function (e) {
+        let CoNo = $("#CustomerId").val();
+        let AreaNo = $("#Area").val();
+        window.location.href = "@Url.Action("OrderEdit", "Sales")" + '?Area=' + AreaNo + '&CustomerId=' + CoNo;
+    });
+
+    // 修改
+    $(".btn-edit").on("click", function (e) {
+        var code = $(this).attr("data-fuyu-code");
+        let CoNo = $(this).attr("data-customerId");
+        let AreaNo = $("#Area").val();
+        //if ($(this).attr("data-fuyu-state") == 2) {
+        //    alert('已出貨單不得修改');
+        //    return;
+        //}
+        //else {
+        //window.location.href = '/Sales/OrderEdit?OutNo=' + code + "&Area=" + AreaNo + "&CustomerId=" + CoNo;
+        window.location.href = "@Url.Action("OrderEdit", "Sales")" + '?OutNo=' + code + "&Area=" + AreaNo + "&CustomerId=" + CoNo;
+        //}
+    });
+
+    // 複製新訂單
+    $(".copy").on("click", function (e) {
+        var code = $(this).attr("data-fuyu-code");
+
+        window.location.href = '/Sales/OrderCopy?OutNo=' + code + "&Area=@Model.Area" + "&CustomerId=@Model.CustomerId" + "&IsCopy=true";
+
+    });
+
+    // 刪除
+    $(function () {
+        $(".btn-del").on("click", function (e) {
+
+            if ($(this).attr("data-fuyu-state") == 1) {
+                alert('已出貨單不得修改');
+                return;
+            }
+            else {
+                $(".popup-check-box").addClass("is-active");
+                $(".popup-overlay").addClass("is-active");
+                $("#deldel").val($(this).attr("data-fuyu-code"));
+            }
+
+
+        });
+        $(".js-popup-cancel, .js-popup-confirm").on("click", function (e) {
+            $(".popup-check-box").removeClass("is-active");
+            $(".popup-overlay").removeClass("is-active");
+        });
+        $(".js-popup-confirm").on("click", function (e) {
+            var ff = $("#deldel").val();
+            var Area = $("#Area").val();
+            var CustomerId = $("#CustomerId").val();
+            //window.location.href = '/Sales/OrderDel?id=' + ff + '&Area=' + Area + "&CustomerId=" + CustomerId;
+            window.location.href = '@Url.Action("OrderDel", "Sales")?id=' + ff + '&Area=' + Area + " & CustomerId=" + CustomerId;
+
+        });
+    });
+
+    @*//搜尋
+    //依訂單編號
+    $("#OrderNo").on('change', function () {
+        let orderNo = $("#OrderNo").val();
+        let customerId = $("#CustomerId").val();
+        let area = $("#Area").val();
+
+        window.location.href =
+            "@Url.Action("Order", "Sales")/?OrderNo=" + orderNo + "&Area=" + area + "&CustomerId=" + customerId;
+    });
+
+    //依訂單狀態
+    $("#OrderState").on('change', function () {
+        let orderNo = $("#OrderNo").val();
+        let customerId = $("#CustomerId").val();
+        let area = $("#Area").val();
+        let orderState = $("#OrderState").val();
+
+        window.location.href =
+            "@Url.Action("Order", "Sales")/?OrderNo=" + orderNo + "&Area=" + area + "&CustomerId=" + customerId;
+    });*@
+
+</script>
+
+
+<script>
+    $(function () {
+        event_bind(); // 進入頁面綁下拉搜尋事件;
+    });
+
+    function event_bind() {
+        $(".selectA").change(function (e) {// 下拉搜尋
+
+            $('.selectB').empty();
+            var sV = $('#Area').val();
+            $('.selectB').append(`<option value=""> 全部 </option>`);
+
+               $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("AjaxClientName", "Ajaxs")",
+                    data: { id: sV },
+                    success: function (data) {
+                        if (data != null) {
+                            //for (var i = 0; i < data.length; i++) {
+                            //    var js = data[i];
+                            //    var jss = js.split(",");
+                            //    var str = '<option value="' + jss[0] + '">' + jss[1] + '</div>';
+                            //    $(".selectB").append(str)
+                            //}
+
+                            $.each(data, function (i, fu) {
+                                var str = '<option value="' + fu.coNo + '">' + fu.coname + '</div>';
+                                $(".selectB").append(str)
+                            })
+                        }
+
+                    },
+                    error: function () {
+                        alert("發生錯誤!");
+                    }
+                });
+
+        });
+
+    }
+
+    @*$("select#OrderStatus").on('change', function () {
+        var OrderStatus = $("#OrderStatus").val();
+        var Area = $("#Area").val();
+        var CustomerId = $("#CustomerId").val();
+
+        $.ajax({
+            type:'get',
+            contentType: "application/json",
+            url: '@Url.Action("Order", "Sales")',
+            data: { 'OrderStatus': OrderStatus, 'Area': Area, 'CustomerId': CustomerId },
+            success: function () {
+
+            }
+        });
+    });*@
+
+    //$("#Fstate").change(function (e) {
+    //    var strfuyu = $("#Fstate").val() + "," + $("#Forder").val() + "," + $("#Fdate").val() + "," + $("#SAREA").val() + "," + $("#SCLIENT").val();
+    //    saction(strfuyu);
+    //});
+    //$("#Forder").change(function (e) {
+    //    if ($("#Forder").val().length == 0 || $("#Forder").val().length == 14)
+    //    {
+    //        var strfuyu = $("#Fstate").val() + "," + $("#Forder").val() + "," + $("#Fdate").val() + "," + $("#SAREA").val() + "," + $("#SCLIENT").val();
+    //        saction(strfuyu);
+    //    }
+    //});
+    //$("#Fdate").change(function (e) {
+    //    var strfuyu = $("#Fstate").val() + "," + $("#Forder").val() + "," + $("#Fdate").val() + "," + $("#SAREA").val() + "," + $("#SCLIENT").val();
+    //    saction(strfuyu);
+    //});
+    //$("#SCLIENT").change( function (e) {
+    //    var strfuyu = $("#Fstate").val() + "," + $("#Forder").val() + "," + $("#Fdate").val() + "," + $("#SAREA").val() + "," + $("#SCLIENT").val();
+    //    saction(strfuyu);
+    //});
+
+    //function saction(str) {
+    //    $(".btn-submitfuyu").click();
+    //}
+
+</script>
+
+
+
