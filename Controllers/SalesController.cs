@@ -1113,20 +1113,19 @@ namespace ERP6.Controllers
                         // 如果有最新單號
                         //newOutNO = !String.IsNullOrEmpty(lastOutNo) ? (int.Parse(lastOutNo) + 1).ToString() : cond + "5001";
 
-                        string newOutNo;
                         if (!string.IsNullOrEmpty(lastOutNo))
                         {
-                            newOutNo = (int.Parse(lastOutNo) + 1).ToString();
-                            var sb = new StringBuilder(newOutNo);
+                            newOutNO = (int.Parse(lastOutNo) + 1).ToString();
+                            var sb = new StringBuilder(newOutNO);
 
                             if (sb[6] != '5')
                                 sb[6] = '5';
 
-                            newOutNo = sb.ToString();
+                            newOutNO = sb.ToString();
                         }
                         else
                         {
-                            newOutNo = cond + "5001";
+                            newOutNO = cond + "5001";
                         }
                         //20240702 Ethan
 
