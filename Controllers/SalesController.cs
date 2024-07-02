@@ -11,6 +11,7 @@ using ERP6.ViewModels.Sales;
 using X.PagedList;
 using System.IO;
 using ERP6.Helpers;
+using System.Text;
 
 namespace ERP6.Controllers
 {
@@ -1108,8 +1109,26 @@ namespace ERP6.Controllers
                         var lastOutNo = _context.Out10.Where(x => x.OutNo.Contains(cond) && x.OutType == "1").OrderByDescending(x => x.OutNo).FirstOrDefault()?.OutNo;
                         //20240628 Ethan
 
+                        //20240702 Ethan 修正單號產生
                         // 如果有最新單號
-                        newOutNO = !String.IsNullOrEmpty(lastOutNo) ? (int.Parse(lastOutNo) + 1).ToString() : cond + "5001";
+                        //newOutNO = !String.IsNullOrEmpty(lastOutNo) ? (int.Parse(lastOutNo) + 1).ToString() : cond + "5001";
+
+                        string newOutNo;
+                        if (!string.IsNullOrEmpty(lastOutNo))
+                        {
+                            newOutNo = (int.Parse(lastOutNo) + 1).ToString();
+                            var sb = new StringBuilder(newOutNo);
+
+                            if (sb[6] != '5')
+                                sb[6] = '5';
+
+                            newOutNo = sb.ToString();
+                        }
+                        else
+                        {
+                            newOutNo = cond + "5001";
+                        }
+                        //20240702 Ethan
 
                         // 計算帳款月份 依客戶結帳日、出貨日期為準
                         var PayMonth = "";
